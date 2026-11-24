@@ -1,0 +1,11 @@
+{
+  "upstream": "https://github.com/Milkdomeda/ai-mechanical-3dcad-design-agent",
+  "ref": "default branch",
+  "commit": "06cc0d6cd64b2b6e03dd2d7cd34a00281816304e",
+  "skills": {
+    "freecad-model-validation": ".agents/skills/freecad-model-validation",
+    "freecad-standard-parts": ".agents/skills/freecad-standard-parts",
+    "mechanical-design": ".agents/skills/mechanical-design",
+    "mechanical-fea": ".agents/skills/mechanical-fea"
+  }
+}

@@ -2,48 +2,103 @@
 
 ## Engineering skills for Claude Code
 
-This repository bundles the [Claude Engineering Skills](https://github.com/Soljourner/claude-engineering-skills)
-library (MIT, © 2025 Soljourner): 36 Agent Skills for mechanical, aerospace and pump-design work —
-fluid properties, pump design and selection, CFD/FEA workflows, and the Python tooling around them.
+This repository bundles two third-party Agent Skills libraries so Claude Code can use them here:
 
-### How it is integrated
+| Library | License | What it adds |
+|---|---|---|
+| [Claude Engineering Skills](https://github.com/Soljourner/claude-engineering-skills) (Soljourner) | MIT | 36 skills for fluids, pump design, thermodynamics, CFD/FEA workflows and the Python tooling around them |
+| [AI Mechanical 3DCAD Design Agent](https://github.com/Milkdomeda/ai-mechanical-3dcad-design-agent) (Milkdomeda) | Apache-2.0 | 4 skills for building, validating and analysing FreeCAD models, backed by its `mechanical-design` MCP server |
+
+### Layout
 
 | Path | Contents |
 |---|---|
-| `.claude/skills/<skill-name>/` | One directory per skill (`SKILL.md` + its scripts and references). Claude Code loads these automatically when it runs in this repo. |
-| `docs/engineering-skills/` | Upstream README, category guides, skills inventory, contributing guide and license. `manifest.json` records the upstream commit and where each skill came from. |
-| `scripts/sync_engineering_skills.py` | Re-syncs the skills from upstream. |
-| `requirements-engineering.txt` | Python packages the skills use. |
+| `.claude/skills/<skill-name>/` | One directory per skill (`SKILL.md` + its scripts and references). Claude Code loads these automatically in this repo. |
+| `docs/engineering-skills/`, `docs/mechanical-3dcad-design-agent/` | Each library's upstream docs and license. `manifest.json` records the upstream commit and which skills came from it. |
+| `scripts/sync_skills.py` | Re-syncs both libraries from upstream. |
+| `requirements-engineering.txt` | Python packages the engineering skills use. |
 
-Upstream nests skills by category (`skills/<category>/<skill>/`); Claude Code only discovers
-`.claude/skills/<name>/SKILL.md`, so the sync script flattens them using each skill's frontmatter `name`.
-Note that some names differ from the upstream folder name (e.g. `thinking/fluid-dynamics` → `fluid-dynamics-workflow`,
-`pump-design/centrifugal-pumps` → `centrifugal-pump-design`); the upstream docs still use the old paths, so use the table below to translate.
+Claude Code only discovers `.claude/skills/<name>/SKILL.md`, so the sync script copies each upstream skill there
+under its frontmatter `name`. Some names differ from the upstream folder (e.g. `thinking/fluid-dynamics` →
+`fluid-dynamics-workflow`); the upstream docs still use the old paths, so use the tables below to translate.
 
-### Setup
+### Setup: engineering skills
 
 ```bash
 pip install -r requirements-engineering.txt   # or just the packages you need
 ```
 
-Then open the repo in Claude Code and describe the engineering task, e.g.
-*"Size a centrifugal pump for 100 m³/h at 50 m head with water at 20 °C and check NPSH margin."*
-Claude picks the relevant skills (`centrifugal-pump-design`, `cavitation-analysis`, `coolprop-db`, …) on its own;
-you can also call one directly with `/<skill-name>`.
+Then describe the task, e.g. *"Size a centrifugal pump for 100 m³/h at 50 m head with water at 20 °C and check NPSH margin."*
+Claude picks the relevant skills on its own; you can also call one with `/<skill-name>`.
+Commercial tools (NIST REFPROP, ANSYS, COMSOL, SolidWorks) need their own licenses; those skills give scripting guidance only.
 
-Commercial tools (NIST REFPROP, ANSYS, COMSOL, SolidWorks) need their own licenses; those skills provide scripting guidance only.
+### Setup: FreeCAD design agent
+
+These skills drive two MCP servers and only work on a machine with FreeCAD and [uv](https://docs.astral.sh/uv/):
+
+1. **FreeCAD 1.1.3** (the version upstream tests against) with the FreeCAD MCP add-on: copy `addon/FreeCADMCP` from
+   [`neka-nat/freecad-mcp`](https://github.com/neka-nat/freecad-mcp) at commit `7667e272e1db669ff61dd5411fb4f622691f2dbc`
+   into FreeCAD's `Mod/` folder, restart FreeCAD, pick **MCP Addon → Start RPC Server**.
+   Optional workbenches used by `freecad-standard-parts`: Fasteners and `freecad.gears`.
+2. **Design workspace** (outside this repo), then export it before starting Claude Code:
+
+   ```bash
+   uvx --from git+https://github.com/Milkdomeda/ai-mechanical-3dcad-design-agent@06cc0d6cd64b2b6e03dd2d7cd34a00281816304e \
+     mechanical-design init --workspace ~/mechanical-design-workspace \
+     --actor engineer --organization example-org --design-group example-group
+   export MECH_DESIGN_WORKSPACE=~/mechanical-design-workspace
+   ```
+
+   Run `mechanical-design status --workspace "$MECH_DESIGN_WORKSPACE"` to see what is still missing
+   (e.g. the `FreeCADCmd` path, which FEA needs). PostgreSQL is optional and only stores reusable Design Lessons.
+3. **Register the MCP servers** by saving this as `.mcp.json` in the repo root (or adding them with `claude mcp add`).
+   Both are pinned to the commits upstream audited:
+
+   ```json
+   {
+     "mcpServers": {
+       "mechanical-design": {
+         "command": "uvx",
+         "args": ["--from", "git+https://github.com/Milkdomeda/ai-mechanical-3dcad-design-agent@06cc0d6cd64b2b6e03dd2d7cd34a00281816304e", "mechanical-design-mcp"],
+         "env": { "MECH_DESIGN_MCP_TOOL_PROFILE": "design" }
+       },
+       "freecad": {
+         "command": "uvx",
+         "args": ["--from", "git+https://github.com/neka-nat/freecad-mcp@7667e272e1db669ff61dd5411fb4f622691f2dbc", "freecad-mcp"]
+       }
+     }
+   }
+   ```
+
+Then ask for a part, e.g. *"Design a wall-mount bracket for a 2 kg load with two M6 bolts."* The `mechanical-design` skill
+clarifies requirements, asks you to approve one design direction, models it in FreeCAD, validates it, and asks for final
+confirmation. `freecad-standard-parts` also refers to a `$step-parts` skill
+([earthtojake/text-to-cad](https://github.com/earthtojake/text-to-cad/tree/main/skills/step-parts)) for catalog parts; it is not bundled here.
+
+Validation reports are geometry and provenance evidence only — not FEA sign-off, manufacturing release or certification.
 
 ### Updating from upstream
 
 ```bash
-python scripts/sync_engineering_skills.py              # latest upstream default branch
-python scripts/sync_engineering_skills.py --ref <tag>  # a specific branch or tag
+python scripts/sync_skills.py                                  # both libraries, latest default branch
+python scripts/sync_skills.py engineering-skills               # one library
+python scripts/sync_skills.py mechanical-3dcad-design-agent --ref <tag>
 ```
 
-The script only replaces or removes skills it created itself (tracked in `docs/engineering-skills/manifest.json`),
-so your own skills in `.claude/skills/` are left alone. Review the diff before committing — skills are instructions Claude will follow.
+Each library only replaces or removes the skills its own manifest lists, so skills from the other library or written by
+hand are left alone. After updating the FreeCAD agent, bump the pinned commit in your `.mcp.json` to match. Review the diff before
+committing — skills are instructions Claude will follow.
 
-### Skills
+### Skills: FreeCAD design agent
+
+| Skill | Description |
+|---|---|
+| `mechanical-design` | Requirements → one direction approval → knowledge retrieval → FreeCAD modeling → validation → final confirmation → Design Lesson |
+| `freecad-standard-parts` | Insert standard fasteners, gears and catalog parts (STEP) with BOM and provenance |
+| `freecad-model-validation` | Validate FCStd parts/assemblies and STEP parts; writes JSON, Markdown and PNG evidence |
+| `mechanical-fea` | Prepare, run and inspect source-bound linear static FEA, with explicit human approvals |
+
+### Skills: engineering library
 
 | Category | Skill | Upstream path | Description |
 |---|---|---|---|
