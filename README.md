@@ -2,20 +2,21 @@
 
 ## Engineering skills for Claude Code
 
-This repository bundles two third-party Agent Skills libraries so Claude Code can use them here:
+This repository bundles three third-party Agent Skills libraries so Claude Code can use them here:
 
 | Library | License | What it adds |
 |---|---|---|
 | [Claude Engineering Skills](https://github.com/Soljourner/claude-engineering-skills) (Soljourner) | MIT | 36 skills for fluids, pump design, thermodynamics, CFD/FEA workflows and the Python tooling around them |
 | [AI Mechanical 3DCAD Design Agent](https://github.com/Milkdomeda/ai-mechanical-3dcad-design-agent) (Milkdomeda) | Apache-2.0 | 4 skills for building, validating and analysing FreeCAD models, backed by its `mechanical-design` MCP server |
+| [text-to-cad](https://github.com/earthtojake/text-to-cad) (earthtojake), v0.11.17 | MIT | 8 skills for build123d CAD as Python, manufacturing checks, FEA, drawings, renders, PCBs, 3D printing, SendCutSend and robot descriptions, driven by the `cad` CLI |
 
 ### Layout
 
 | Path | Contents |
 |---|---|
 | `.claude/skills/<skill-name>/` | One directory per skill (`SKILL.md` + its scripts and references). Claude Code loads these automatically in this repo. |
-| `docs/engineering-skills/`, `docs/mechanical-3dcad-design-agent/` | Each library's upstream docs and license. `manifest.json` records the upstream commit and which skills came from it. |
-| `scripts/sync_skills.py` | Re-syncs both libraries from upstream. |
+| `docs/engineering-skills/`, `docs/mechanical-3dcad-design-agent/`, `docs/text-to-cad/` | Each library's upstream docs and license. `manifest.json` records the upstream commit and which skills came from it. |
+| `scripts/sync_skills.py` | Re-syncs the libraries from upstream. |
 | `requirements-engineering.txt` | Python packages the engineering skills use. |
 
 Claude Code only discovers `.claude/skills/<name>/SKILL.md`, so the sync script copies each upstream skill there
@@ -58,21 +59,40 @@ These skills drive two MCP servers and only work on a machine with FreeCAD and [
 
 Then ask for a part, e.g. *"Design a wall-mount bracket for a 2 kg load with two M6 bolts."* The `mechanical-design` skill
 clarifies requirements, asks you to approve one design direction, models it in FreeCAD, validates it, and asks for final
-confirmation. `freecad-standard-parts` also refers to a `$step-parts` skill
-([earthtojake/text-to-cad](https://github.com/earthtojake/text-to-cad/tree/main/skills/step-parts)) for catalog parts; it is not bundled here.
+confirmation. `freecad-standard-parts` also refers to a `$step-parts` skill from text-to-cad for catalog parts; text-to-cad
+retired that skill in 0.11, so catalog STEP files come from the step.parts service directly
+(`freecad-standard-parts/scripts/cache_step_part.py` caches and checksums them).
 
 Validation reports are geometry and provenance evidence only — not FEA sign-off, manufacturing release or certification.
+
+### Setup: text-to-cad
+
+The skills call the `cad` CLI (needs [uv](https://docs.astral.sh/uv/)); they were written for 0.11.17:
+
+```bash
+uv tool install cad==0.11.17
+cad --version
+```
+
+Then ask, e.g. *"Model a 40 × 20 × 6 mm bracket with an 8 mm bore and export a STEP."* `cad` builds the model, prints a
+local viewer link and exports files. Blender (`render`), KiCad (`pcb`) and OrcaSlicer (`print3d`) are only needed for
+those skills. Upstream's one-line installer also turns on automatic plugin updates; installing `cad` with uv as above
+does not, and the vendored skills only change when you run the sync script.
+
+**Which skill when:** text-to-cad (`cad`, `fea`) works on build123d Python models with no FreeCAD; the FreeCAD agent
+(`mechanical-design`, `mechanical-fea`) works on FCStd files with approval gates and validation evidence. Name the one
+you want if a request could fit both.
 
 ### Updating from upstream
 
 ```bash
-python scripts/sync_skills.py                                  # both libraries, latest default branch
+python scripts/sync_skills.py                                  # every library, latest default branch
 python scripts/sync_skills.py engineering-skills               # one library
 python scripts/sync_skills.py mechanical-3dcad-design-agent --ref <tag>
 ```
 
-Each library only replaces or removes the skills its own manifest lists, so skills from the other library or written by
-hand are left alone. After updating the FreeCAD agent, bump the pinned commit in `.mcp.json` to match. Review the diff before
+Each library only replaces or removes the skills its own manifest lists, so skills from other libraries or written by
+hand are left alone. After updating the FreeCAD agent, bump the pinned commit in `.mcp.json` to match; after updating text-to-cad, install the `cad` version its `cad` skill names. Review the diff before
 committing — skills are instructions Claude will follow.
 
 ### Skills: FreeCAD design agent
@@ -83,6 +103,19 @@ committing — skills are instructions Claude will follow.
 | `freecad-standard-parts` | Insert standard fasteners, gears and catalog parts (STEP) with BOM and provenance |
 | `freecad-model-validation` | Validate FCStd parts/assemblies and STEP parts; writes JSON, Markdown and PNG evidence |
 | `mechanical-fea` | Prepare, run and inspect source-bound linear static FEA, with explicit human approvals |
+
+### Skills: text-to-cad
+
+| Skill | Description |
+|---|---|
+| `cad` | Parts, assemblies, mechanisms and DXF profiles as build123d Python; export STEP/STL/3MF/GLB; manufacturability checks |
+| `fea` | Linear static stress check with CalculiX: peak stress, safety factor, deflection |
+| `engineering-drawing` | Dimensioned PDF drawings projected from the 3D model |
+| `render` | Photoreal stills and videos with Blender |
+| `pcb` | KiCad schematics and boards, ERC/DRC, pre-order review, fab files |
+| `print3d` | Slice with OrcaSlicer; hand off to Bambu Connect or Bambu Studio |
+| `sendcutsend` | Preflight DXF/STEP files against SendCutSend's rules before you order (it does not order) |
+| `robot-simulation` | URDF, SRDF and MJCF for ROS, MoveIt and MuJoCo |
 
 ### Skills: engineering library
 

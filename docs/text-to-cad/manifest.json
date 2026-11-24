@@ -1,0 +1,15 @@
+{
+  "upstream": "https://github.com/earthtojake/text-to-cad",
+  "ref": "default branch",
+  "commit": "a35df3f4ab8abe86d370fbffb631277a4e170e7b",
+  "skills": {
+    "cad": "skills/cad",
+    "engineering-drawing": "skills/engineering-drawing",
+    "fea": "skills/fea",
+    "pcb": "skills/pcb",
+    "print3d": "skills/print3d",
+    "render": "skills/render",
+    "robot-simulation": "skills/robot-simulation",
+    "sendcutsend": "skills/sendcutsend"
+  }
+}

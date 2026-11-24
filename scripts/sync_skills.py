@@ -65,6 +65,14 @@ SOURCES: dict[str, Source] = {
         renames=(("README.md", "UPSTREAM_README.md"), ("AGENTS.md", "UPSTREAM_AGENTS.md"),
                  (".env.example", "env.example")),
     ),
+    "text-to-cad": Source(
+        url="https://github.com/earthtojake/text-to-cad",
+        skills_root="skills",
+        docs=("README.md", "AGENTS.md", "LICENSE", "SECURITY.md", "VERSION", "docs/install.md",
+              "docs/migrations/*.md"),
+        skill_excludes=("agents",),
+        renames=(("README.md", "UPSTREAM_README.md"), ("AGENTS.md", "UPSTREAM_AGENTS.md")),
+    ),
 }
 
 BASE_IGNORES = ("__pycache__", "*.pyc", ".DS_Store")
