@@ -1,0 +1,13 @@
+# Python packages used by the engineering skills in .claude/skills/
+# (from the upstream Claude Engineering Skills library). Install only what you need.
+numpy
+scipy
+sympy
+matplotlib
+pint
+fluids
+thermo
+chemicals
+CoolProp
+networkx
+pyvista
