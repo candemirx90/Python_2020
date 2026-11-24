@@ -51,24 +51,10 @@ These skills drive two MCP servers and only work on a machine with FreeCAD and [
 
    Run `mechanical-design status --workspace "$MECH_DESIGN_WORKSPACE"` to see what is still missing
    (e.g. the `FreeCADCmd` path, which FEA needs). PostgreSQL is optional and only stores reusable Design Lessons.
-3. **Register the MCP servers** by saving this as `.mcp.json` in the repo root (or adding them with `claude mcp add`).
-   Both are pinned to the commits upstream audited:
-
-   ```json
-   {
-     "mcpServers": {
-       "mechanical-design": {
-         "command": "uvx",
-         "args": ["--from", "git+https://github.com/Milkdomeda/ai-mechanical-3dcad-design-agent@06cc0d6cd64b2b6e03dd2d7cd34a00281816304e", "mechanical-design-mcp"],
-         "env": { "MECH_DESIGN_MCP_TOOL_PROFILE": "design" }
-       },
-       "freecad": {
-         "command": "uvx",
-         "args": ["--from", "git+https://github.com/neka-nat/freecad-mcp@7667e272e1db669ff61dd5411fb4f622691f2dbc", "freecad-mcp"]
-       }
-     }
-   }
-   ```
+3. **MCP servers** are registered in `.mcp.json` (pinned to the commits upstream audited): `mechanical-design` for design
+   state, validation and FEA, and `freecad` for live CAD edits through the add-on from step 1. Claude Code asks you to
+   approve them the first time you open the repo; both run through `uvx`, and `mechanical-design` reads
+   `MECH_DESIGN_WORKSPACE` from the environment you start Claude Code in.
 
 Then ask for a part, e.g. *"Design a wall-mount bracket for a 2 kg load with two M6 bolts."* The `mechanical-design` skill
 clarifies requirements, asks you to approve one design direction, models it in FreeCAD, validates it, and asks for final
@@ -86,7 +72,7 @@ python scripts/sync_skills.py mechanical-3dcad-design-agent --ref <tag>
 ```
 
 Each library only replaces or removes the skills its own manifest lists, so skills from the other library or written by
-hand are left alone. After updating the FreeCAD agent, bump the pinned commit in your `.mcp.json` to match. Review the diff before
+hand are left alone. After updating the FreeCAD agent, bump the pinned commit in `.mcp.json` to match. Review the diff before
 committing — skills are instructions Claude will follow.
 
 ### Skills: FreeCAD design agent

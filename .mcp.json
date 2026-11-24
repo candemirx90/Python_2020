@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "mechanical-design": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/Milkdomeda/ai-mechanical-3dcad-design-agent@06cc0d6cd64b2b6e03dd2d7cd34a00281816304e",
+        "mechanical-design-mcp"
+      ],
+      "env": {
+        "MECH_DESIGN_MCP_TOOL_PROFILE": "design"
+      }
+    },
+    "freecad": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/neka-nat/freecad-mcp@7667e272e1db669ff61dd5411fb4f622691f2dbc",
+        "freecad-mcp"
+      ]
+    }
+  }
+}
