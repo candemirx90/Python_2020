@@ -20,6 +20,18 @@
         "git+https://github.com/neka-nat/freecad-mcp@7667e272e1db669ff61dd5411fb4f622691f2dbc",
         "freecad-mcp"
       ]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@0.0.85",
+        "--headless",
+        "--isolated",
+        "--output-dir",
+        ".playwright-mcp"
+      ]
     }
   }
 }

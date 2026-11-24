@@ -83,6 +83,22 @@ does not, and the vendored skills only change when you run the sync script.
 (`mechanical-design`, `mechanical-fea`) works on FCStd files with approval gates and validation evidence. Name the one
 you want if a request could fit both.
 
+### Web scraping: Playwright MCP
+
+`.mcp.json` also registers Microsoft's [Playwright MCP](https://github.com/microsoft/playwright-mcp)
+(`@playwright/mcp@0.0.85`, run with `npx`, so it needs Node.js). It drives a real browser, so it handles
+JavaScript-heavy pages, clicking through pagination, filling search forms and screenshots. Ask, e.g.
+*"Open example.com/products, go through every page and save name, price and URL to `data/products.csv`."*
+
+- **Browser:** it uses Google Chrome by default. Without Chrome, run `npx playwright install chrome`, or add
+  `"--browser", "chromium"` to its args and run `npx playwright install chromium`.
+- **Flags:** `--headless` runs without a window (remove it to watch the browser), `--isolated` starts each session
+  with a fresh in-memory profile so your own cookies and logins are never used, and `--output-dir .playwright-mcp`
+  keeps screenshots and traces in a git-ignored folder.
+- **Cloud sessions** only reach the hosts their environment allows (package registries by default), so scrape from
+  your own machine, or add the target hosts to the environment's network settings.
+- Respect each site's terms of use and `robots.txt`, and keep request rates polite.
+
 ### Updating from upstream
 
 ```bash

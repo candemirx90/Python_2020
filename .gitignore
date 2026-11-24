@@ -5,3 +5,4 @@ venv/
 .env
 .claude/settings.local.json
 designs/
+.playwright-mcp/
