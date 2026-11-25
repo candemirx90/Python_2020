@@ -1,0 +1,8 @@
+{
+  "upstream": "https://github.com/mvanhorn/last30days-skill",
+  "ref": "default branch",
+  "commit": "7c2e1c2b099b13abd4397910168c4f53e638bb21",
+  "skills": {
+    "last30days": "skills/last30days"
+  }
+}

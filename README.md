@@ -2,20 +2,21 @@
 
 ## Engineering skills for Claude Code
 
-This repository bundles three third-party Agent Skills libraries so Claude Code can use them here:
+This repository bundles four third-party Agent Skills libraries so Claude Code can use them here:
 
 | Library | License | What it adds |
 |---|---|---|
 | [Claude Engineering Skills](https://github.com/Soljourner/claude-engineering-skills) (Soljourner) | MIT | 36 skills for fluids, pump design, thermodynamics, CFD/FEA workflows and the Python tooling around them |
 | [AI Mechanical 3DCAD Design Agent](https://github.com/Milkdomeda/ai-mechanical-3dcad-design-agent) (Milkdomeda) | Apache-2.0 | 4 skills for building, validating and analysing FreeCAD models, backed by its `mechanical-design` MCP server |
 | [text-to-cad](https://github.com/earthtojake/text-to-cad) (earthtojake), v0.11.17 | MIT | 8 skills for build123d CAD as Python, manufacturing checks, FEA, drawings, renders, PCBs, 3D printing, SendCutSend and robot descriptions, driven by the `cad` CLI |
+| [last30days](https://github.com/mvanhorn/last30days-skill) (Matt Van Horn), v4.6.0 | MIT | 1 skill that researches what people said about a topic in the last 30 days across Reddit, X, YouTube, TikTok, Hacker News, Polymarket, GitHub and the web |
 
 ### Layout
 
 | Path | Contents |
 |---|---|
 | `.claude/skills/<skill-name>/` | One directory per skill (`SKILL.md` + its scripts and references). Claude Code loads these automatically in this repo. |
-| `docs/engineering-skills/`, `docs/mechanical-3dcad-design-agent/`, `docs/text-to-cad/` | Each library's upstream docs and license. `manifest.json` records the upstream commit and which skills came from it. |
+| `docs/engineering-skills/`, `docs/mechanical-3dcad-design-agent/`, `docs/text-to-cad/`, `docs/last30days/` | Each library's upstream docs and license. `manifest.json` records the upstream commit and which skills came from it. |
 | `scripts/sync_skills.py` | Re-syncs the libraries from upstream. |
 | `requirements-engineering.txt` | Python packages the engineering skills use. |
 
@@ -99,6 +100,23 @@ JavaScript-heavy pages, clicking through pagination, filling search forms and sc
   your own machine, or add the target hosts to the environment's network settings.
 - Respect each site's terms of use and `robots.txt`, and keep request rates polite.
 
+### Setup: last30days
+
+Run `/last30days <topic>`, e.g. `/last30days Segway F2 Pro reviews`. It needs Python 3.12+ (it installs one through uv
+if missing) and Node.js for its X search client; `yt-dlp` adds YouTube. The first run starts a setup wizard that writes
+`~/.config/last30days/.env`.
+
+- **Free sources, no keys:** Hacker News, Polymarket, public Reddit threads, YouTube (with `yt-dlp`) and the web.
+- **Optional keys** add sources: `SCRAPECREATORS_API_KEY` for TikTok and Instagram (10,000 free calls), `X_BEARER_TOKEN`
+  or `XAI_API_KEY` for X, and Brave, Perplexity, Parallel or OpenRouter for web search. Paid calls spend credits.
+- **Browser cookies:** it can read X or Reddit logins from Chrome, Safari or Firefox, but only after you consent
+  (`BROWSER_CONSENT` / `FROM_BROWSER`). Answer *no* in the wizard to keep it off.
+- **Saved briefs** go to `~/Documents/Last30Days` (`LAST30DAYS_MEMORY_DIR`; set it empty to save nothing). Publishing to
+  `ht-ml.app` happens only when you ask, and those pages are public unless password-protected.
+- **Not included:** upstream's plugin Stop hook, which auto-archives finished briefs, and its demo media (`assets/`).
+- **Cloud sessions** only reach allowed hosts; add e.g. `www.reddit.com`, `hn.algolia.com` and
+  `gamma-api.polymarket.com` to the environment's network settings to research from there.
+
 ### Updating from upstream
 
 ```bash
@@ -132,6 +150,12 @@ committing — skills are instructions Claude will follow.
 | `print3d` | Slice with OrcaSlicer; hand off to Bambu Connect or Bambu Studio |
 | `sendcutsend` | Preflight DXF/STEP files against SendCutSend's rules before you order (it does not order) |
 | `robot-simulation` | URDF, SRDF and MJCF for ROS, MoveIt and MuJoCo |
+
+### Skills: research
+
+| Skill | Description |
+|---|---|
+| `last30days` | What people actually said about a topic in the last 30 days, ranked by engagement, with citations; also trending discovery, competitor comparisons and a source health check (`doctor`) |
 
 ### Skills: engineering library
 

@@ -73,6 +73,16 @@ SOURCES: dict[str, Source] = {
         skill_excludes=("agents",),
         renames=(("README.md", "UPSTREAM_README.md"), ("AGENTS.md", "UPSTREAM_AGENTS.md")),
     ),
+    "last30days": Source(
+        url="https://github.com/mvanhorn/last30days-skill",
+        skills_root="skills",
+        docs=("README.md", "LICENSE", "SECURITY.md", "CONFIGURATION.md", "CONCEPTS.md", "CHANGELOG.md"),
+        # Upstream's .skillignore leaves the demo media (assets/, ~14 MB) and Codex metadata out
+        # of the runtime skill. Its Stop hook (.claude-plugin/hooks.json) is plugin-only and not
+        # installed here.
+        skill_excludes=("agents", "assets"),
+        renames=(("README.md", "UPSTREAM_README.md"),),
+    ),
 }
 
 BASE_IGNORES = ("__pycache__", "*.pyc", ".DS_Store")
