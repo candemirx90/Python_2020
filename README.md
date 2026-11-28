@@ -2,7 +2,7 @@
 
 ## Engineering skills for Claude Code
 
-This repository bundles four third-party Agent Skills libraries so Claude Code can use them here:
+This repository bundles five third-party Agent Skills libraries so Claude Code can use them here:
 
 | Library | License | What it adds |
 |---|---|---|
@@ -10,13 +10,14 @@ This repository bundles four third-party Agent Skills libraries so Claude Code c
 | [AI Mechanical 3DCAD Design Agent](https://github.com/Milkdomeda/ai-mechanical-3dcad-design-agent) (Milkdomeda) | Apache-2.0 | 4 skills for building, validating and analysing FreeCAD models, backed by its `mechanical-design` MCP server |
 | [text-to-cad](https://github.com/earthtojake/text-to-cad) (earthtojake), v0.11.17 | MIT | 8 skills for build123d CAD as Python, manufacturing checks, FEA, drawings, renders, PCBs, 3D printing, SendCutSend and robot descriptions, driven by the `cad` CLI |
 | [last30days](https://github.com/mvanhorn/last30days-skill) (Matt Van Horn), v4.6.0 | MIT | 1 skill that researches what people said about a topic in the last 30 days across Reddit, X, YouTube, TikTok, Hacker News, Polymarket, GitHub and the web |
+| [Graphify](https://github.com/safishamsi/graphify) (Safi Shamsi), v0.9.122 | Apache-2.0 (earlier parts MIT) | 1 skill that turns a folder of code, docs, papers or images into a queryable knowledge graph (interactive HTML, JSON and a plain-language report), driven by the `graphify` CLI |
 
 ### Layout
 
 | Path | Contents |
 |---|---|
 | `.claude/skills/<skill-name>/` | One directory per skill (`SKILL.md` + its scripts and references). Claude Code loads these automatically in this repo. |
-| `docs/engineering-skills/`, `docs/mechanical-3dcad-design-agent/`, `docs/text-to-cad/`, `docs/last30days/` | Each library's upstream docs and license. `manifest.json` records the upstream commit and which skills came from it. |
+| `docs/engineering-skills/`, `docs/mechanical-3dcad-design-agent/`, `docs/text-to-cad/`, `docs/last30days/`, `docs/graphify/` | Each library's upstream docs and license. `manifest.json` records the upstream commit and which skills came from it. |
 | `scripts/sync_skills.py` | Re-syncs the libraries from upstream. |
 | `requirements-engineering.txt` | Python packages the engineering skills use. |
 
@@ -117,16 +118,41 @@ if missing) and Node.js for its X search client; `yt-dlp` adds YouTube. The firs
 - **Cloud sessions** only reach allowed hosts; add e.g. `www.reddit.com`, `hn.algolia.com` and
   `gamma-api.polymarket.com` to the environment's network settings to research from there.
 
+### Setup: Graphify
+
+The skill drives the `graphify` CLI from the `graphifyy` package (Python 3.11.5+). Install the version the skill was
+vendored from, so its instructions and the CLI match:
+
+```bash
+uv tool install graphifyy==0.9.122   # or: pipx install graphifyy==0.9.122
+graphify --version
+```
+
+If `graphify` is missing, the skill installs the latest `graphifyy` itself, which may not match the vendored text.
+Then run `/graphify` (this repo), `/graphify <path>`, or ask a question once a graph exists, e.g.
+`/graphify query "which skills use the cad CLI?"`.
+
+- **Output** goes to `graphify-out/` (`graph.html`, `graph.json`, `GRAPH_REPORT.md`, plus a cache); it is git-ignored.
+- **No API key needed.** Code is parsed locally (tree-sitter). Docs, papers and images are read by the Claude Code
+  session itself, which costs tokens on large folders; `GEMINI_API_KEY`/`GOOGLE_API_KEY` switches that to Gemini.
+- **Not included:** what `graphify claude install` adds beyond the skill — a `## graphify` block in `CLAUDE.md` and
+  PreToolUse/SessionStart hooks in `.claude/settings.json` that nudge (or, with `--strict`, block) Read/Grep until the
+  graph is queried. Run `graphify claude install --project` yourself if you want them. The skill sets up a post-commit
+  rebuild hook only when you ask for one (`graphify hook install`).
+- **Cloud sessions** reach PyPI by default, so the install works; `/graphify https://github.com/...` needs `github.com`
+  allowed for cloning.
+
 ### Updating from upstream
 
 ```bash
 python scripts/sync_skills.py                                  # every library, latest default branch
 python scripts/sync_skills.py engineering-skills               # one library
 python scripts/sync_skills.py mechanical-3dcad-design-agent --ref <tag>
+python scripts/sync_skills.py graphify --ref v<version>            # tags match the graphifyy release
 ```
 
 Each library only replaces or removes the skills its own manifest lists, so skills from other libraries or written by
-hand are left alone. After updating the FreeCAD agent, bump the pinned commit in `.mcp.json` to match; after updating text-to-cad, install the `cad` version its `cad` skill names. Review the diff before
+hand are left alone. After updating the FreeCAD agent, bump the pinned commit in `.mcp.json` to match; after updating text-to-cad, install the `cad` version its `cad` skill names; after updating Graphify, install the matching `graphifyy` version. Review the diff before
 committing — skills are instructions Claude will follow.
 
 ### Skills: FreeCAD design agent
@@ -156,6 +182,12 @@ committing — skills are instructions Claude will follow.
 | Skill | Description |
 |---|---|
 | `last30days` | What people actually said about a topic in the last 30 days, ranked by engagement, with citations; also trending discovery, competitor comparisons and a source health check (`doctor`) |
+
+### Skills: knowledge graph
+
+| Skill | Description |
+|---|---|
+| `graphify` | Build a knowledge graph of a folder or GitHub repo (communities, "god nodes", EXTRACTED/INFERRED edges), then `query`, `path` and `explain` against it; exports to HTML, JSON, Obsidian, GraphML, Neo4j and an MCP server |
 
 ### Skills: engineering library
 

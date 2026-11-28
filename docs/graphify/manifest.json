@@ -1,0 +1,11 @@
+{
+  "upstream": "https://github.com/safishamsi/graphify",
+  "ref": "v0.9.122",
+  "commit": "290cacaf82be5a35007fae5d06342a042fa89db7",
+  "skills": {
+    "graphify": {
+      "SKILL.md": "graphify/skill.md",
+      "references": "graphify/skills/claude/references"
+    }
+  }
+}

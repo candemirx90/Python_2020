@@ -6,3 +6,4 @@ venv/
 .claude/settings.local.json
 designs/
 .playwright-mcp/
+graphify-out/
